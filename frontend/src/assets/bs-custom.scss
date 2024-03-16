@@ -1,0 +1,11 @@
+@import "../../node_modules/bootstrap/scss/bootstrap";
+@import 'colors';
+
+body {
+  --bs-body-bg: #{$color-background-main};
+  --bs-body-color: #{$color-text-white};
+}
+
+.fc {
+  @extend .form-control
+}

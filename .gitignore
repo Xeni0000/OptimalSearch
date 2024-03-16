@@ -1,0 +1,5 @@
+.idea
+db.sqlite3
+todo delete/
+_secret/
+OptimalSearch/django_key.py
