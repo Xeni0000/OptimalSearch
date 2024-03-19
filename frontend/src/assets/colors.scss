@@ -1,3 +1,35 @@
-$color-background-main: rgb(0, 0, 0);
+$color-border-gray: #333;
 
-$color-text-white: rgb(230, 230, 230);
+$color-success: #005d00;
+$color-error: #ce0000;
+$color-border-error: #7d0000;
+
+$color-attention: #ffa51e;
+
+$color-white: #eeeeee;
+$color-black: #0c0c0c;
+
+$color-background-dark: #1a1a1a;
+$color-background-light: #ddd;
+
+$text-dark: $color-white;
+$text-dark-muted: #888;
+$text-light: $color-black;
+$text-light-muted: lighten($text-light, 30%);
+
+$input-disable-bg: lighten($color-black, 4%);
+
+$navbar-left-background: $color-black;
+$column-0-background: lighten($color-black, 3%);
+$diagram-background: $color-black;
+
+$scroll-background: $color-black;
+$scroll-foreground: lighten($color-black, 10%);
+
+$table-2nd-cell-background: lighten($color-black, 2%);
+
+$left-bar-background: rgba($color-black, 0.9);
+
+$cr-primary: #1c65aa;
+$blue-hover: #2174c3;
+$blue-hover-shadow: darken($blue-hover, 30%);

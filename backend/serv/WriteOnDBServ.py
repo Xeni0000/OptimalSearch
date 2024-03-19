@@ -8,8 +8,11 @@ from backend.serv.common import WriteTemplate, WriteSegment, WriteAttachment, Wr
 class WriteOnDBServ:
     @staticmethod
     async def write_templates(templates: list) -> dict[str: WriteTemplate]:
+        """Функция для записи шаблонов в бд. Возвращает словарь с созданными шаблонами"""
+
         templates_dict: dict[str: WriteTemplate] = {}
 
+        # Записываем шаблоны в БД и словарь
         for row in templates:
             name: str = row[0]
             templates_dict[name] = WriteTemplate(name)
@@ -19,6 +22,10 @@ class WriteOnDBServ:
 
     @staticmethod
     async def write_segments(segments: list) -> tuple[dict[str: WriteSegment], dict[str: WriteRole]]:
+        """Функция для записи базовых зависимостей ролей в БД. Возвращает кортеж с двумя словарями: представление
+        ролей в 'Неуверен как это написать правильно, имею в виду, что здесь записаны сперва сегменты, потом приложения
+         и потом роли.' и полный список созданных ролей"""
+
         last_segment: Segment
         last_attachment: Attachment
         last_role: Role
@@ -26,6 +33,8 @@ class WriteOnDBServ:
         segments_dict: dict[str: WriteSegment] = {}
         roles: dict[str: WriteRole] = {}
 
+        # Проходимся циклом по полученным данным и, на основании выполняемых условий, записываем в БД сегменты,
+        # приложения и шаблоны.
         for row in segments:
             is_segment = row[0] is not None and row[0] != '' and row[0] != 'Сегмент'
             is_attachment = row[1] is not None and row[1] != '' and row[1] != 'Приложение'
@@ -58,7 +67,11 @@ class WriteOnDBServ:
 
     @staticmethod
     async def write_subsystems(subsystems: list, templates: dict[str: WriteTemplate], roles: dict[str: WriteRole]) \
-            -> tuple[dict[str: WriteSubsystem], dict[str: WriteSegment], dict[str: WriteRole]]:
+            -> tuple[dict[str: WriteSubsystem], dict[str: WriteTemplate], dict[str: WriteRole]]:
+        """Функция для записи базовых зависимостей задач в БД, а так же для построения зависимостей между ролями,
+         задачами и шаблонами. Возвращает кортеж с тремя словарями: представление
+        задач в 'Тоже что и в функции выше, та же фигня ((', а так же дополненные списки ролей и шаблонов"""
+
         last_subsystem: Subsystem
         last_folder: Folder
         last_task: Task
@@ -67,6 +80,8 @@ class WriteOnDBServ:
         subsystems_dict: dict[str: WriteSubsystem] = {}
         tasks: dict[str: WriteTask] = {}
 
+        # Проходимся циклом по полученным данным и, на основании выполняемых условий, записываем в БД подсистемы,
+        # папки и задачи. Для каждой из ролей указываем зависимые задачи
         for row in subsystems:
             is_subsystem = row[0] is not None and row[0] != '' and row[0] != 'Подсистема'
             is_folder = row[1] is not None and row[1] != '' and row[1] != 'Папка'
@@ -124,11 +139,16 @@ class WriteOnDBServ:
                                 subsystems: dict[str: WriteSubsystem], segments: dict[str: WriteSegment]) \
             -> tuple[
                 dict[str: WriteTemplate], dict[str: WriteTemplate], dict[str: WriteSubsystem], dict[str: WriteTask]]:
+        """Финальная функция для построения зависимостей между моделями БД. Возвращает дополненные списки необходимых
+         данных"""
+
         last_attachment: WriteAttachment
         last_role_name: str
         last_subsystem: WriteSubsystem
         last_folder: WriteFolder
 
+        # Проходимся циклом по полученным данным и, на основании выполняемых условий, записываем данные в БД
+        # и дополняем зависимости
         for row in attachments:
             is_attachment = row[0] is not None
             is_role = row[2] is not None
@@ -198,6 +218,7 @@ class WriteOnDBServ:
 
                 last_folder.tasks[name].roles.add(last_role_name)
 
+        # создаём словарь задач
         tasks: dict[str: WriteTask] = {}
         for s in subsystems.values():
             for f in s.folders.values():

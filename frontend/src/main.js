@@ -13,9 +13,12 @@ import '@/assets/main.css'
 
 import ApiPlugin from './plugins/api'
 import Notify from './plugins/notify'
+import {ElDialog, ElPagination} from "element-plus";
 
 const app = createApp(App)
 
+app.use(ElDialog)
+app.use(ElPagination)
 app.use(ApiPlugin)
 
 app.use(createPinia())

@@ -1,10 +1,14 @@
 @import "../../node_modules/bootstrap/scss/bootstrap";
 @import 'colors';
 
-body {
-  --bs-body-bg: #{$color-background-main};
-  --bs-body-color: #{$color-text-white};
-}
+//body {
+//  --bs-body-bg: #{$color-black};
+//  --bs-body-color: #{$color-white};
+//}
+//
+//.table {
+//  --bs-table-color-state: $color-white;
+//}
 
 .fc {
   @extend .form-control

@@ -11859,9 +11859,5 @@ textarea.form-control-lg {
     display: none !important;
   }
 }
-body {
-  --bs-body-bg: rgb(0, 0, 0);
-  --bs-body-color: rgb(230, 230, 230);
-}
 
 /*# sourceMappingURL=bs-custom.css.map */

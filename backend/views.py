@@ -1,8 +1,9 @@
+from django.db.models import Count
 from openpyxl.reader.excel import load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
 
 from backend.common.arch.forms import WriteToDBForm
-from backend.common.decorators import require_POST
+from backend.common.decorators import require_POST, require_GET
 from backend.common.http import ErrorResponse, SuccessResponse
 from backend.models import Subsystem, Folder, Task, Segment, Attachment, Role, Template
 from backend.serv.WriteOnDBServ import WriteOnDBServ
@@ -10,8 +11,11 @@ from backend.serv.WriteOnDBServ import WriteOnDBServ
 
 @require_POST
 async def write_on_db(request):
+    """Функция бля построения зависимостей и записи данных в БД"""
+
     form = WriteToDBForm.from_POST(request)
 
+    # считываем при помощи библиотеки openpyxl данные из файлов
     try:
         subsystems_wb = load_workbook(form.path_to_tasks)
     except InvalidFileException as ex:
@@ -95,4 +99,37 @@ async def write_on_db(request):
     return SuccessResponse({
         'not_added_roles': not_added_roles,
         'not_added_tasks': not_added_tasks,
+    })
+
+
+@require_GET
+async def role_list(request):
+    return SuccessResponse()
+
+
+@require_GET
+async def tasks_list(request):
+    return SuccessResponse()
+
+
+@require_POST
+async def find_tasks_duplicate_dependence(request):
+    """Функция для поиска повторяющихся задачей в БД"""
+
+    # Получаем из БД роли и добавляем к каждой из них поле с указанием количества связанных задач
+    roles_with_task_count = Role.objects.annotate(task_count=Count('task'))
+
+    # фильтруем роли по количеству задач больше одной
+    roles_with_multiple_tasks = roles_with_task_count.filter(task_count__gt=1)
+
+    # Ищем задачи, роли которых мы отфильтровали выше
+    duplicated_tasks = Task.objects.filter(roles__in=roles_with_multiple_tasks)
+
+    # возвращаем список задач и связанных ролей
+    return SuccessResponse({
+        'tasks': [{
+            'task': t.dict(),
+            'roles': [r.dict() async for r in t.roles.all()]
+        } async for t in duplicated_tasks],
+        'count': await duplicated_tasks.acount()
     })
