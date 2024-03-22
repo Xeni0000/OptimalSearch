@@ -29,12 +29,25 @@ class Task(models.Model):
     roles = models.ManyToManyField(to='Role', db_index=True, blank=True)
     name = models.CharField(max_length=250, db_index=True)
 
+    async def roles_list(self) -> list:
+        roles = self.roles.select_related('attachment', 'attachment__segment').filter()
+        return [r.dict(attachment_in=True) async for r in roles]
+
     def dict(self, folder_in: bool = False) -> dict:
         return {
             'id': self.id,
             'folder_id': self.folder_id,
             'folder': self.folder.dict(folder_in) if folder_in else None,
             'name': self.name,
+        }
+
+    async def adict(self, folder_in: bool = False) -> dict:
+        return {
+            'id': self.id,
+            'folder_id': self.folder_id,
+            'folder': self.folder.dict(folder_in) if folder_in else None,
+            'roles': await self.roles_list() if folder_in else None,
+            'name': self.name
         }
 
 
@@ -56,7 +69,7 @@ class Attachment(models.Model):
         return {
             'id': self.id,
             'segment_id': self.segment_id,
-            'attachment': self.segment.dict() if segment_in else None,
+            'segment': self.segment.dict() if segment_in else None,
             'name': self.name
         }
 
@@ -66,11 +79,24 @@ class Role(models.Model):
     templates = models.ManyToManyField(to='Template', db_index=True, blank=True)
     name = models.CharField(max_length=250, db_index=True)
 
+    async def tasks(self) -> list[Task]:
+        tasks = self.task_set.select_related('folder', 'folder__subsystem').filter()
+        return [t.dict(folder_in=True) async for t in tasks]
+
     def dict(self, attachment_in: bool = False) -> dict:
         return {
             'id': self.id,
             'attachment_id': self.attachment_id,
             'attachment': self.attachment.dict(attachment_in) if attachment_in else None,
+            'name': self.name
+        }
+
+    async def adict(self, attachment_in: bool = False) -> dict:
+        return {
+            'id': self.id,
+            'attachment_id': self.attachment_id,
+            'attachment': self.attachment.dict(attachment_in) if attachment_in else None,
+            'tasks': await self.tasks() if attachment_in else None,
             'name': self.name
         }
 

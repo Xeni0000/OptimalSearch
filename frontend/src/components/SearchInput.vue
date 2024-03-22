@@ -10,6 +10,7 @@
 <script>
 export default {
   name: "SearchInput",
+  emits: ['cr-search'],
   data() {
     return {
       text: '',

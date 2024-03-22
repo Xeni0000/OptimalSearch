@@ -1,8 +1,8 @@
-from django.db.models import Count
+from django.db.models import Count, Q
 from openpyxl.reader.excel import load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
 
-from backend.common.arch.forms import WriteToDBForm
+from backend.common.arch.forms import WriteToDBForm, PaginationForm, SearchForm, OrderForm
 from backend.common.decorators import require_POST, require_GET
 from backend.common.http import ErrorResponse, SuccessResponse
 from backend.models import Subsystem, Folder, Task, Segment, Attachment, Role, Template
@@ -104,12 +104,50 @@ async def write_on_db(request):
 
 @require_GET
 async def role_list(request):
-    return SuccessResponse()
+    pag_form = PaginationForm.from_GET(request)
+    search_form = SearchForm.from_GET(request)
+    order_form = OrderForm.from_GET(request)
+
+    roles = Role.objects.select_related('attachment', 'attachment__segment').filter()
+
+    if search_form.search_text:
+        roles = roles.filter(Q(name__icontains=search_form.search_text) |
+                             Q(attachment__name__icontains=search_form.search_text) |
+                             Q(attachment__segment__name__icontains=search_form.search_text))
+
+    if order_form.order_by:
+        roles = roles.order_by(order_form.ordering_str)
+    else:
+        roles = roles.order_by('name')
+
+    return SuccessResponse({'roles': [
+        await r.adict(attachment_in=True) async for r in roles[pag_form.fr: pag_form.to]
+    ],
+        'count': await roles.acount()})
 
 
 @require_GET
-async def tasks_list(request):
-    return SuccessResponse()
+async def task_list(request):
+    pag_form = PaginationForm.from_GET(request)
+    search_form = SearchForm.from_GET(request)
+    order_form = OrderForm.from_GET(request)
+
+    tasks = Task.objects.select_related('folder', 'folder__subsystem').filter()
+
+    if search_form.search_text:
+        tasks = tasks.filter(Q(name__icontains=search_form.search_text) |
+                             Q(folder__name__icontains=search_form.search_text) |
+                             Q(folder__subsystem__name__icontains=search_form.search_text))
+
+    if order_form.order_by:
+        tasks = tasks.order_by(order_form.ordering_str)
+    else:
+        tasks = tasks.order_by('name')
+
+    return SuccessResponse({'tasks': [
+        await t.adict(folder_in=True) async for t in tasks[pag_form.fr: pag_form.to]
+    ],
+        'count': await tasks.acount()})
 
 
 @require_POST

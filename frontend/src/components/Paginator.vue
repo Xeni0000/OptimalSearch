@@ -1,14 +1,5 @@
 <template>
-  <div class="pagination-cr" v-show="pages>1">
-    <div class="pag-per-page">
-      <i class="bi bi-caret-up-fill btn-incr"
-         @click="per_page_step('+')"></i>
-      <i class="bi bi-caret-down-fill btn-decr"
-         :class="{'min': per_page === 1}"
-         @click="per_page_step('-')"></i>
-
-      <input type="number" disabled :value="per_page">
-    </div>
+  <div class="pagination-cr">
     <el-pagination v-model="page"
                    :page-size="per_page"
                    :total="count"
