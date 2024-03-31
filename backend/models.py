@@ -103,6 +103,7 @@ class Role(models.Model):
 
 class Template(models.Model):
     name = models.CharField(max_length=250, db_index=True)
+    is_main = models.BooleanField(default=False)
 
     def dict(self) -> dict:
         return {

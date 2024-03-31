@@ -1,6 +1,6 @@
 <template>
   <div class="row m-0">
-    <div class="col-2">
+    <div class="col-4">
       <div class="row mb-2">
         <label>Путь до файла задач</label>
         <input v-model="form.path_to_tasks" class="fc">
@@ -17,6 +17,10 @@
         <label>Путь до файла ролей списком</label>
         <input v-model="form.path_to_roles_list_wb" class="fc">
       </div>
+      <div class="row mb-2">
+        <label>Путь до файла ролей и шаблонов</label>
+        <input v-model="form.path_to_templates_and_roles" class="fc">
+      </div>
       <div class="row">
         <button class="btn btn-primary"
                 @click="write_to_db">
@@ -24,14 +28,14 @@
         </button>
       </div>
     </div>
-    <div class="col-5">
+    <div class="col-4">
       <template v-for="r in  not_added_roles">
         <div class="">
           {{ r }}
         </div>
       </template>
     </div>
-    <div class="col-5">
+    <div class="col-4">
       <template v-for="t in  not_added_tasks">
         <div class="">
           {{ t }}
@@ -53,6 +57,7 @@ export default {
         path_to_templates: 'C:\\Users\\Stas\\PycharmProjects\\OptimalSearch\\todo delete\\Шаблоны.xlsx',
         path_to_roles: 'C:\\Users\\Stas\\PycharmProjects\\OptimalSearch\\todo delete\\Роли.xlsx',
         path_to_roles_list_wb: 'C:\\Users\\Stas\\PycharmProjects\\OptimalSearch\\todo delete\\роли список.xlsx',
+        path_to_templates_and_roles: 'C:\\Users\\Stas\\PycharmProjects\\OptimalSearch\\todo delete\\Все шаблоны и роли.xlsx',
       },
 
       not_added_roles: [],

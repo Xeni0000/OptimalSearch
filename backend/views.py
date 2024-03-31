@@ -44,6 +44,13 @@ async def write_on_db(request):
     except FileNotFoundError as ex:
         return ErrorResponse({'path_to_roles_list_wb': str(ex)})
 
+    try:
+        templates_and_roles_wb = load_workbook(form.path_to_templates_and_roles)
+    except InvalidFileException as ex:
+        return ErrorResponse({'path_to_templates_and_roles': str(ex)})
+    except FileNotFoundError as ex:
+        return ErrorResponse({'path_to_templates_and_roles': str(ex)})
+
     # region Templates
 
     templates_ws = templates_wb.active
@@ -61,9 +68,20 @@ async def write_on_db(request):
     # endregion
 
     # region Tasks
+
     subsystems_ws = subsystems_wb.active
     subsystems_list = subsystems_ws.values
     subsystems, templates, roles = await WriteOnDBServ.write_subsystems(subsystems_list, templates, roles)
+
+    # endregion
+
+    # region Templates and Roles
+
+    templates_and_roles_ws = templates_and_roles_wb.active
+    templates_and_roles_list = templates_and_roles_ws.values
+    templates, roles, subsystems, segments = await WriteOnDBServ.write_templates_and_roles(templates_and_roles_list,
+                                                                                           templates, roles, subsystems,
+                                                                                           segments)
 
     # endregion
 
@@ -75,6 +93,7 @@ async def write_on_db(request):
                                                                                 subsystems, segments)
 
     # endregion
+
     not_added_roles: list[str] = []
     not_added_tasks: list[str] = []
 

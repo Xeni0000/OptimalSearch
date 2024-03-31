@@ -25,6 +25,7 @@ class WriteToDBForm(Form):
     path_to_templates: constr(min_length=1)
     path_to_roles: constr(min_length=1)
     path_to_roles_list_wb: constr(min_length=1)
+    path_to_templates_and_roles: constr(min_length=1)
 
 
 class PaginationForm(Form):

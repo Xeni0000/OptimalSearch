@@ -135,10 +135,103 @@ class WriteOnDBServ:
         return subsystems_dict, templates, roles
 
     @staticmethod
-    async def write_attachments(attachments: list, templates: dict[str: WriteTemplate], roles: dict[str: WriteTemplate],
+    async def write_templates_and_roles(templates_and_roles: list, templates: dict[str: WriteTemplate],
+                                        roles: dict[str: WriteTemplate], subsystems: dict[str: WriteSubsystem],
+                                        segments: dict[str: WriteSegment]) \
+            -> tuple[
+                dict[str: WriteTemplate], dict[str: WriteRole], dict[str: WriteSubsystem], dict[str: WriteSegment]]:
+        last_template: WriteTemplate
+        last_attachment: WriteAttachment
+        last_role: WriteRole
+        last_subsystem: WriteSubsystem
+        last_folder: WriteFolder
+
+        for row in templates_and_roles:
+            is_template = row[0] is not None and row[0] != '' and row[0] != 'Шаблон'
+            is_attachment = row[3] is not None and row[3] != '' and row[3] != 'Приложение'
+            is_role = row[4] is not None and row[4] != '' and row[4] != 'Роль'
+            is_subsystem = row[7] is not None and row[7] != '' and row[7] != 'Подсистема'
+            is_folder = row[8] is not None and row[8] != '' and row[8] != 'Папка'
+            is_tasks = row[9] is not None and row[9] != '' and row[9] != 'Задача'
+
+            if is_template:
+                name = row[0]
+                last_template = templates.get(name)
+                if name not in templates:
+                    templates[name] = WriteTemplate(name)
+                    templates[name].template = await Template.objects.acreate(name=name, is_main=True)
+                    last_template = templates[name]
+
+            if is_attachment:
+                name = row[3]
+                for s in segments.values():
+                    if name in s.attachments:
+                        last_attachment = s.attachments[name]
+                        break
+
+            if is_role and last_attachment is not None:
+                name = row[4]
+                role = roles.get(name)
+                if name not in roles:
+                    role = WriteRole(name)
+                    roles[name] = role
+                    role_db = await Role.objects.acreate(attachment_id=last_attachment.attachment.id, name=name)
+                    roles[name].role = role_db
+
+                    for s in segments.values():
+                        if last_attachment.name in s.attachments:
+                            s.attachments[last_attachment.name].roles[name] = role
+                            break
+
+                last_role = role
+
+                if last_template.name not in role.templates:
+                    role.templates.add(last_template.name)
+
+            if is_subsystem:
+                name = row[7]
+                subsystem = subsystems.get(name)
+                if name not in subsystems:
+                    subsystem = WriteSubsystem(name)
+                    subsystems[name] = subsystem
+                    subsystems[name].subsystem = await Subsystem.objects.acreate(name=name)
+
+                last_subsystem = subsystem
+
+            if is_folder:
+                name = row[8]
+                folder = last_subsystem.folders.get(name)
+                if name not in last_subsystem.folders:
+                    folder = WriteFolder(name)
+                    last_subsystem.folders[name] = folder
+                    db_folder = await Folder.objects.acreate(subsystem_id=last_subsystem.subsystem.id, name=name)
+                    last_subsystem.folders[name].folder = db_folder
+
+                last_folder = folder
+
+            if is_tasks:
+                name = row[9]
+                task = last_folder.tasks.get(name)
+                if name not in last_folder.tasks:
+                    task = WriteTask(name)
+                    last_folder.tasks[name] = task
+                    db_task = await Task.objects.acreate(folder_id=last_folder.folder.id, name=name)
+                    task.task = db_task
+
+                if last_role is not None:
+                    if last_role.name not in task.roles:
+                        task.roles.add(last_role.name)
+
+            last_attachment = None
+            last_role = None
+
+        return templates, roles, subsystems, segments
+
+    @staticmethod
+    async def write_attachments(attachments: list, templates: dict[str: WriteTemplate], roles: dict[str: WriteRole],
                                 subsystems: dict[str: WriteSubsystem], segments: dict[str: WriteSegment]) \
             -> tuple[
-                dict[str: WriteTemplate], dict[str: WriteTemplate], dict[str: WriteSubsystem], dict[str: WriteTask]]:
+                dict[str: WriteTemplate], dict[str: WriteRole], dict[str: WriteSubsystem], dict[str: WriteTask]]:
         """Финальная функция для построения зависимостей между моделями БД. Возвращает дополненные списки необходимых
          данных"""
 
